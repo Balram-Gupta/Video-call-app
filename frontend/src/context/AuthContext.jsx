@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 export const AuthContext = createContext({});
 
 const client = axios.create({
-  baseURL: "http://localhost:8000/api/auth",
+  baseURL: "https://video-call-app-2mgc.onrender.com/api/auth",
 });
 
 // Attach token automatically

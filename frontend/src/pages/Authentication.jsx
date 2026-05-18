@@ -45,7 +45,7 @@ export default function Authentication() {
 
                 // Step 1: Send OTP
                 if (!otpSent) {
-                    const res = await fetch("http://localhost:8000/api/auth/send-otp", {
+                    const res = await fetch("https://video-call-app-2mgc.onrender.com/api/auth/send-otp", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ email })
@@ -61,7 +61,7 @@ export default function Authentication() {
                 }
 
                 else {
-                    const res = await fetch("http://localhost:8000/api/auth/verify-otp", {
+                    const res = await fetch("https://video-call-app-2mgc.onrender.com/api/auth/verify-otp", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         credentials: "include",
