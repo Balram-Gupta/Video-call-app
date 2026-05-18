@@ -1,0 +1,227 @@
+.landingPageContainer {
+    width: 100vw;
+    min-height: 100vh;
+    background: url("/public/background.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: white;
+}
+  
+.landingPageContainer nav {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+  
+.landingPageContainer nav h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+  
+.landingPageContainer nav .navlist {
+    display: flex;
+    gap: 1rem;
+    cursor: pointer;
+}
+  
+.landingMainContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    min-height: calc(100vh - 80px);
+    text-align: center;
+}
+  
+.landingMainContainer>div:nth-child(1) {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+}
+  
+.landingMainContainer>div:nth-child(1) div[role='button'] {
+    background: #D97500;
+    width: fit-content;
+    padding: 0.8rem 1.5rem;
+    border-radius: 20px;
+    margin: 1.5rem auto 0;
+}
+  
+.landingMainContainer>div:nth-child(1) div[role='button'] a {
+    text-decoration: none;
+    color: white;
+    font-size: 1.3rem;
+}
+  
+.landingMainContainer>div:nth-child(2) img {
+    max-height: 50vh;
+    width: auto;
+    max-width: 100%;
+}
+  
+.navBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    text-align: center;
+}
+  
+.meetContainer {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    min-height: 80vh;
+    gap: 2rem;
+    align-items: center;
+}
+  
+.leftPanel {
+    width: 100%;
+    text-align: center;
+}
+  
+.rightPanel {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+  
+.rightPanel > img {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    border-radius: 20px;
+}
+
+/* Tablet devices (768px and up) */
+@media (min-width: 768px) {
+    .landingPageContainer nav h2 {
+        font-size: 1.8rem;
+    }
+    
+    .landingMainContainer {
+        flex-direction: row;
+        text-align: left;
+        padding: 2rem;
+    }
+    
+    .landingMainContainer>div:nth-child(1) {
+        font-size: 2rem;
+        margin-bottom: 0;
+    }
+    
+    .landingMainContainer>div:nth-child(1) div[role='button'] {
+        margin: 1.9rem 0 0;
+    }
+    
+    .meetContainer {
+        flex-direction: row;
+        padding: 2rem;
+        gap: 5vw;
+    }
+    
+    .leftPanel {
+        width: 50%;
+        text-align: left;
+    }
+    
+    .rightPanel {
+        width: 50%;
+    }
+    
+    .rightPanel > img {
+        width: 100%;
+    }
+}
+
+/* Desktop devices (1024px and up) */
+@media (min-width: 1024px) {
+    .landingPageContainer nav {
+        padding: 1.6rem 1.2rem;
+    }
+    
+    .landingMainContainer {
+        padding: 3rem;
+    }
+    
+    .landingMainContainer>div:nth-child(1) {
+        font-size: 2.2rem;
+    }
+    
+    .landingMainContainer>div:nth-child(2) img {
+        height: 70vh;
+    }
+    
+    .meetContainer {
+        gap: 10vw;
+    }
+    
+    .rightPanel > img {
+        width: 30vw;
+    }
+}
+
+/* Navbar responsive styles */
+.navlist {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.navlist button {
+    text-transform: none;
+    font-weight: 500;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .navlist {
+        gap: 8px;
+    }
+    
+    .navlist button {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+    
+    .navlist .MuiBox-root {
+        display: none;
+    }
+    
+    .landingMainContainer {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .landingMainContainer h1 {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .navlist button span {
+        display: none;
+    }
+    
+    .navlist button {
+        min-width: auto;
+    }
+}
+
+/* Very small devices (less than 400px) */
+@media (max-width: 400px) {
+    .landingPageContainer nav .navlist {
+        gap: 0.5rem;
+    }
+    
+    .landingMainContainer>div:nth-child(1) {
+        font-size: 1.5rem;
+    }
+    
+    .landingMainContainer>div:nth-child(1) div[role='button'] a {
+        font-size: 1.1rem;
+    }
+}
