@@ -1,7 +1,8 @@
+// environment.js
 const deployedServer = "https://video-call-app-2mgc.onrender.com";
-const localServer = `${window.location.protocol}//${window.location.hostname}:8000`;
 
-const server = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? deployedServer : localServer);
+// Force use deployed server
+const server = deployedServer;
 
 export const authApiUrl = `${server}/api/auth`;
 export default server;
