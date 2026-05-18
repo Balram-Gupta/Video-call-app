@@ -14,6 +14,12 @@ const generateOTP = () => {
 
 const RESEND_COOLDOWN = 60 * 1000;
 
+const signUserToken = (user) => jwt.sign(
+  { id: user._id, email: user.email },
+  process.env.JWT_SECRET,
+  { expiresIn: "1d" }
+);
+
 //  Send OTP 
 export const sendOtp = async (req, res) => {
   try {
@@ -99,6 +105,46 @@ export const verifyOtpAndRegister = async (req, res) => {
   }
 };
 
+// Register directly for clients that do not use the OTP flow.
+export const registerUser = async (req, res) => {
+  try {
+    const { name, username, email, password } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "Username, email, and password are required" });
+    }
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      name,
+      username,
+      email,
+      password: hashedPassword,
+    });
+
+    const token = signUserToken(user);
+
+    res.status(httpStatus.CREATED).json({
+      message: "User registered successfully",
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        name: user.name || user.username,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 //  Login 
 export const loginUser = async (req, res) => {
   try {
@@ -120,11 +166,7 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const token = signUserToken(user);
 
     res.json({
       message: "Login successful",
@@ -140,6 +182,10 @@ export const loginUser = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+};
+
+export const logoutUser = async (req, res) => {
+  res.json({ message: "Logout successful" });
 };
 
 // Get user profile
@@ -169,6 +215,45 @@ export const getUserProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("Get profile error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateUserProfile = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ message: "Token not provided" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { name, username } = req.body;
+    const updates = {};
+
+    if (typeof name === "string") updates.name = name.trim();
+    if (typeof username === "string") updates.username = username.trim();
+
+    const user = await User.findByIdAndUpdate(
+      decoded.id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      user: {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        name: user.name || user.username,
+        isGuest: false,
+      },
+    });
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
@@ -227,12 +312,11 @@ export const addToHistory = async (req, res) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const newMeeting = new Meeting({
-      user_id: decoded.id,
-      meeting_code: meeting_code, 
-    });
-
-    await newMeeting.save();
+    await Meeting.findOneAndUpdate(
+      { user_id: decoded.id, meeting_code },
+      { $setOnInsert: { user_id: decoded.id, meeting_code } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
     return res
       .status(httpStatus.CREATED)

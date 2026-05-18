@@ -140,7 +140,7 @@ export const AuthProvider = ({ children }) => {
   //  Register 
   const handleRegister = async (name, username, email, password) => {
     try {
-      const request = await client.post("/api/auth/register", {
+      const request = await client.post("/register", {
         name,
         username,
         email,
@@ -201,7 +201,7 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem("token");
       if (token) {
         try {
-          await client.post("/api/auth/logout");
+          await client.post("/logout");
         } catch (err) {
           console.error("Logout API error:", err);
         }
@@ -218,7 +218,7 @@ export const AuthProvider = ({ children }) => {
   //  Update user Profile 
   const updateUserProfile = async (userData) => {
     try {
-      const response = await client.put("/api/auth/profile", userData);
+      const response = await client.put("/profile", userData);
       if (response.status === httpStatus.OK) {
         const user = response.data.user;
         if (user && typeof user === 'object' && !Array.isArray(user)) {

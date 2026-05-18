@@ -10,6 +10,7 @@ import ScreenShareIcon from '@mui/icons-material/ScreenShare';
 import StopScreenShareIcon from '@mui/icons-material/StopScreenShare'
 import ChatIcon from '@mui/icons-material/Chat'
 import CloseIcon from '@mui/icons-material/Close';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import styles from "../style/videoComponent.module.css";
 import server from '../environment';
 import { AuthContext } from '../context/AuthContext';
@@ -572,7 +573,7 @@ export default function VideoMeetComponent() {
               onChange={e => setUsername(e.target.value)} 
               label="Enter your username" 
               margin="normal"
-              onKeyPress={e => e.key === 'Enter' && connect()}
+              onKeyDown={e => e.key === 'Enter' && connect()}
             />
             <Button 
               fullWidth
@@ -613,10 +614,12 @@ export default function VideoMeetComponent() {
               ></video>
               <div className={styles.videoOverlay}>
                 <div className={styles.usernameBadge}>
-                  <span className={styles.username}>{username} (You) {screenSharing && "📺"}</span>
+                  <span className={styles.username}>{username} (You) {screenSharing && "(Screen)"}</span>
                 </div>
                 {hoveredVideo === "self" && !maximizedVideo && (
-                  <button className={styles.maximizeBtn} onClick={() => setMaximizedVideo("self")}>⛶</button>
+                  <button className={styles.maximizeBtn} onClick={() => setMaximizedVideo("self")} aria-label="Maximize self video">
+                    <FullscreenIcon fontSize="small" />
+                  </button>
                 )}
                 {maximizedVideo === "self" && (
                   <button className={styles.closeMaximizeBtn} onClick={() => setMaximizedVideo(null)}><CloseIcon /></button>
@@ -652,7 +655,9 @@ export default function VideoMeetComponent() {
                     <span className={styles.username}>{video.username || participantNames[video.socketId] || "Participant"}</span>
                   </div>
                   {hoveredVideo === video.socketId && !maximizedVideo && (
-                    <button className={styles.maximizeBtn} onClick={() => setMaximizedVideo(video.socketId)}>⛶</button>
+                    <button className={styles.maximizeBtn} onClick={() => setMaximizedVideo(video.socketId)} aria-label="Maximize participant video">
+                      <FullscreenIcon fontSize="small" />
+                    </button>
                   )}
                   {maximizedVideo === video.socketId && (
                     <button className={styles.closeMaximizeBtn} onClick={() => setMaximizedVideo(null)}><CloseIcon /></button>
@@ -708,7 +713,7 @@ export default function VideoMeetComponent() {
                   placeholder="Type a message..." 
                   value={message} 
                   onChange={e => setMessage(e.target.value)} 
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
                 />
                 <Button variant="contained" onClick={sendMessage} sx={{ bgcolor: '#FF9839' }}>Send</Button>
               </Box>
