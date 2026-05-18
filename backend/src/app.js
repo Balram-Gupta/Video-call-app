@@ -12,10 +12,10 @@ const app = express();
 const server = createServer(app);
 connectToSocket(server); 
 
-const port = 8000;
+const port = process.env.PORT || 8000;
 
 app.use(cors({
-  origin: true,
+  origin: process.env.FRONTEND_URL || true,
   credentials: true
 }));
 

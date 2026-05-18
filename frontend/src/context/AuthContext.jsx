@@ -2,11 +2,12 @@ import axios from "axios";
 import httpStatus from "http-status";
 import { createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { authApiUrl } from "../environment";
 
 export const AuthContext = createContext({});
 
 const client = axios.create({
-  baseURL: "https://video-call-app-2mgc.onrender.com/api/auth",
+  baseURL: authApiUrl,
 });
 
 // Attach token automatically

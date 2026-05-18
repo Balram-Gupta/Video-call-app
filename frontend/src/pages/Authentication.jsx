@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { AuthContext } from '../context/AuthContext';
 import { Snackbar } from '@mui/material';
+import { authApiUrl } from '../environment';
 
 const defaultTheme = createTheme();
 
@@ -45,7 +46,7 @@ export default function Authentication() {
 
                 // Step 1: Send OTP
                 if (!otpSent) {
-                    const res = await fetch("https://video-call-app-2mgc.onrender.com/api/auth/send-otp", {
+                    const res = await fetch(`${authApiUrl}/send-otp`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ email })
@@ -61,7 +62,7 @@ export default function Authentication() {
                 }
 
                 else {
-                    const res = await fetch("https://video-call-app-2mgc.onrender.com/api/auth/verify-otp", {
+                    const res = await fetch(`${authApiUrl}/verify-otp`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         credentials: "include",
