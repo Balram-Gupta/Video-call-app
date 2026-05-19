@@ -29,7 +29,14 @@ export const sendOtp = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const existing = otpStore.get(email);
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const existing = otpStore.get(normalizedEmail);
 
     if (existing && existing.lastSent + RESEND_COOLDOWN > Date.now()) {
       const remaining = Math.ceil(
@@ -43,18 +50,19 @@ export const sendOtp = async (req, res) => {
 
     const otp = generateOTP();
 
-    otpStore.set(email, {
+    await sendEmail(normalizedEmail, otp);
+
+    otpStore.set(normalizedEmail, {
       otp,
       expiry: Date.now() + 5 * 60 * 1000,
       lastSent: Date.now(),
     });
 
-    await sendEmail(email, otp);
-
     res.json({ message: "OTP sent successfully" });
 
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("Send OTP error:", err);
+    res.status(500).json({ message: "Failed to send OTP email" });
   }
 };
 
@@ -67,7 +75,8 @@ export const verifyOtpAndRegister = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const record = otpStore.get(email);
+    const normalizedEmail = email.trim().toLowerCase();
+    const record = otpStore.get(normalizedEmail);
 
     if (!record) {
       return res.status(400).json({ message: "OTP not found" });
@@ -81,7 +90,7 @@ export const verifyOtpAndRegister = async (req, res) => {
       return res.status(400).json({ message: "OTP expired" });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
@@ -91,12 +100,12 @@ export const verifyOtpAndRegister = async (req, res) => {
 
     await User.create({
       username,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       isVerified: true,
     });
 
-    otpStore.delete(email);
+    otpStore.delete(normalizedEmail);
 
     res.json({ message: "User registered successfully" });
 
@@ -114,7 +123,8 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Username, email, and password are required" });
     }
 
-    const existingUser = await User.findOne({ email });
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
@@ -124,7 +134,7 @@ export const registerUser = async (req, res) => {
     const user = await User.create({
       name,
       username,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
     });
 

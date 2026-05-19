@@ -1,10 +1,15 @@
+.App {
+    min-height: 100vh;
+    background: #fff7ef;
+}
+
 .landingPageContainer {
     width: 100vw;
     min-height: 100vh;
-    background: url("/public/background.png");
+    background: url(public/background.png);
     background-repeat: no-repeat;
     background-size: cover;
-    color: white;
+    color: #333;
 }
   
 .landingPageContainer nav {
@@ -66,6 +71,7 @@
     justify-content: space-between;
     padding: 1rem;
     text-align: center;
+    background: #fff7ef;
 }
   
 .meetContainer {
@@ -75,6 +81,7 @@
     min-height: 80vh;
     gap: 2rem;
     align-items: center;
+    background: #fff7ef;
 }
   
 .leftPanel {

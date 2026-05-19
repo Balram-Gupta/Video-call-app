@@ -34,7 +34,9 @@ export default function Authentication() {
 
     const { handleLogin } = React.useContext(AuthContext);
 
-    const handleAuth = async () => {
+    const handleAuth = async (event) => {
+        event?.preventDefault();
+
         try {
             setError("");
 
@@ -49,7 +51,7 @@ export default function Authentication() {
                     const res = await fetch(`${authApiUrl}/send-otp`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ email })
+                        body: JSON.stringify({ email: email.trim() })
                     });
 
                     const data = await res.json();
@@ -67,7 +69,7 @@ export default function Authentication() {
                         headers: { "Content-Type": "application/json" },
                         credentials: "include",
                         body: JSON.stringify({
-                            email,
+                            email: email.trim(),
                             username,
                             password,
                             otp
@@ -97,7 +99,7 @@ export default function Authentication() {
 
     return (
         <ThemeProvider theme={defaultTheme}>
-            <Grid container component="main" sx={{ height: '100vh' }}>
+            <Grid container component="main" sx={{ minHeight: '100vh', backgroundColor: '#fff7ef' }}>
                 <CssBaseline />
 
                 {/* Left Image */}
@@ -107,15 +109,16 @@ export default function Authentication() {
                     sm={4}
                     md={7}
                     sx={{
-                        backgroundImage: 'url(https://source.unsplash.com/random?wallpapers)',
+                        backgroundColor: '#fff7ef',
+                        backgroundImage: 'url(/mobile.png)',
                         backgroundRepeat: 'no-repeat',
-                        backgroundSize: 'cover',
+                        backgroundSize: 'contain',
                         backgroundPosition: 'center',
                     }}
                 />
 
                 {/* Right Form */}
-                <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
+                <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square sx={{ backgroundColor: '#fff7ef' }}>
                     <Box
                         sx={{
                             my: 8,
@@ -158,7 +161,7 @@ export default function Authentication() {
                         </Box>
 
                         {/* Form */}
-                        <Box component="form" noValidate sx={{ mt: 2 }}>
+                        <Box component="form" noValidate sx={{ mt: 2 }} onSubmit={handleAuth}>
 
                             {/* LOGIN FORM */}
                             {formState === 0 && (
@@ -238,8 +241,8 @@ export default function Authentication() {
                             <Button
                                 fullWidth
                                 variant="contained"
+                                type="submit"
                                 sx={{ mt: 3, mb: 2 }}
-                                onClick={handleAuth}
                             >
                                 {formState === 0
                                     ? "Login"
