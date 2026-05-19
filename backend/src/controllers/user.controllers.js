@@ -62,7 +62,12 @@ export const sendOtp = async (req, res) => {
 
   } catch (err) {
     console.error("Send OTP error:", err);
-    res.status(500).json({ message: "Failed to send OTP email" });
+    const isConfigError = err.message?.startsWith("Email credentials are missing");
+    res.status(500).json({
+      message: isConfigError
+        ? err.message
+        : "Failed to send OTP email. Please check the backend email provider credentials.",
+    });
   }
 };
 
