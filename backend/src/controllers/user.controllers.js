@@ -13,6 +13,7 @@ const generateOTP = () => {
 };
 
 const RESEND_COOLDOWN = 60 * 1000;
+const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
 
 const signUserToken = (user) => jwt.sign(
   { id: user._id, email: user.email },
@@ -30,6 +31,10 @@ export const sendOtp = async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+
+    if (!EMAIL_PATTERN.test(normalizedEmail)) {
+      return res.status(400).json({ message: "Please enter a valid email address" });
+    }
 
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
@@ -66,7 +71,7 @@ export const sendOtp = async (req, res) => {
     res.status(500).json({
       message: isConfigError
         ? err.message
-        : "Failed to send OTP email. Please check the backend email provider credentials.",
+        : err.message || "Failed to send OTP email. Please check the backend email provider credentials.",
     });
   }
 };
@@ -81,6 +86,11 @@ export const verifyOtpAndRegister = async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+
+    if (!EMAIL_PATTERN.test(normalizedEmail)) {
+      return res.status(400).json({ message: "Please enter a valid email address" });
+    }
+
     const record = otpStore.get(normalizedEmail);
 
     if (!record) {
