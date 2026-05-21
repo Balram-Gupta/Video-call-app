@@ -31,6 +31,10 @@ export default function VideoMeetComponent() {
   const localVideoRef = useRef();
   const localPreviewRef = useRef();
   const localStreamRef = useRef();
+  const cameraVideoTrackRef = useRef();
+  const screenVideoTrackRef = useRef();
+  const screenSharingRef = useRef(false);
+  const remoteStreamsRef = useRef({});
   const pendingIceCandidatesRef = useRef({});
   const remoteUserNamesRef = useRef({});
   
@@ -48,6 +52,10 @@ export default function VideoMeetComponent() {
   const [maximizedVideo, setMaximizedVideo] = useState(null);
   
   const chatDisplayRef = useRef(null);
+
+  useEffect(() => {
+    screenSharingRef.current = screenSharing;
+  }, [screenSharing]);
 
   // Get room ID from URL
   useEffect(() => {
@@ -93,6 +101,73 @@ export default function VideoMeetComponent() {
     });
   };
 
+  const getRemoteStream = (socketId) => {
+    if (!remoteStreamsRef.current[socketId]) {
+      remoteStreamsRef.current[socketId] = new MediaStream();
+    }
+
+    return remoteStreamsRef.current[socketId];
+  };
+
+  const attachLocalStream = (stream) => {
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = stream;
+    }
+    if (localPreviewRef.current) {
+      localPreviewRef.current.srcObject = stream;
+    }
+  };
+
+  const playVideo = (videoElement) => {
+    videoElement.play().catch(e => console.log("Play error:", e));
+  };
+
+  const replaceOutgoingVideoTrack = async (videoTrack) => {
+    await Promise.all(Object.values(peerConnections).map(async (pc) => {
+      const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+      if (sender) {
+        await sender.replaceTrack(videoTrack);
+      }
+    }));
+  };
+
+  const setLocalVideoTrack = (videoTrack) => {
+    const currentStream = localStreamRef.current || new MediaStream();
+    const oldVideoTrack = currentStream.getVideoTracks()[0];
+
+    if (oldVideoTrack && oldVideoTrack !== videoTrack) {
+      currentStream.removeTrack(oldVideoTrack);
+    }
+
+    if (!currentStream.getVideoTracks().includes(videoTrack)) {
+      currentStream.addTrack(videoTrack);
+    }
+
+    localStreamRef.current = currentStream;
+    attachLocalStream(currentStream);
+  };
+
+  const restoreCameraVideo = async () => {
+    try {
+      let cameraTrack = cameraVideoTrackRef.current;
+
+      if (!cameraTrack || cameraTrack.readyState === "ended") {
+        const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        cameraTrack = cameraStream.getVideoTracks()[0];
+        cameraVideoTrackRef.current = cameraTrack;
+      }
+
+      await replaceOutgoingVideoTrack(cameraTrack);
+      setLocalVideoTrack(cameraTrack);
+      setVideoEnabled(cameraTrack.enabled);
+      screenSharingRef.current = false;
+      screenVideoTrackRef.current = null;
+      setScreenSharing(false);
+    } catch (err) {
+      console.error("Error restoring camera:", err);
+    }
+  };
+
   // Start local stream
   const startLocalStream = async () => {
     try {
@@ -102,13 +177,9 @@ export default function VideoMeetComponent() {
       });
       
       localStreamRef.current = stream;
+      cameraVideoTrackRef.current = stream.getVideoTracks()[0] || null;
       
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
-      if (localPreviewRef.current) {
-        localPreviewRef.current.srcObject = stream;
-      }
+      attachLocalStream(stream);
       
       console.log("Local stream started");
       return stream;
@@ -146,14 +217,21 @@ export default function VideoMeetComponent() {
     // Handle remote tracks
     pc.ontrack = (event) => {
       console.log("Received track from:", remoteSocketId, event.track.kind);
+      const stream = getRemoteStream(remoteSocketId);
 
       setRemoteUsers(prev => {
         const existingUser = prev.find(u => u.socketId === remoteSocketId);
-        const stream = existingUser?.stream || event.streams?.[0] || new MediaStream();
 
         if (!stream.getTracks().includes(event.track)) {
           stream.addTrack(event.track);
         }
+
+        event.track.onended = () => {
+          const remoteStream = remoteStreamsRef.current[remoteSocketId];
+          if (remoteStream) {
+            remoteStream.removeTrack(event.track);
+          }
+        };
 
         if (existingUser) {
           return prev.map(u =>
@@ -298,6 +376,7 @@ export default function VideoMeetComponent() {
       }
       delete pendingIceCandidatesRef.current[userId];
       delete remoteUserNamesRef.current[userId];
+      delete remoteStreamsRef.current[userId];
     });
     
     socketRef.current.on('signal', handleSignal);
@@ -341,6 +420,7 @@ export default function VideoMeetComponent() {
     peerConnections = {};
     pendingIceCandidatesRef.current = {};
     remoteUserNamesRef.current = {};
+    remoteStreamsRef.current = {};
     
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => track.stop());
@@ -373,57 +453,31 @@ export default function VideoMeetComponent() {
 
   // Toggle screen share
   const toggleScreenShare = async () => {
-    if (!screenSharing) {
+    if (!screenSharingRef.current) {
       try {
         const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         const videoTrack = stream.getVideoTracks()[0];
         
-        // Replace video track in all peer connections
-        Object.values(peerConnections).forEach(pc => {
-          const sender = pc.getSenders().find(s => s.track?.kind === 'video');
-          if (sender) {
-            sender.replaceTrack(videoTrack);
-          }
-        });
+        await replaceOutgoingVideoTrack(videoTrack);
+        setLocalVideoTrack(videoTrack);
         
-        // Update local video
-        if (localVideoRef.current && localStreamRef.current) {
-          const newStream = new MediaStream();
-          newStream.addTrack(videoTrack);
-          const audioTrack = localStreamRef.current.getAudioTracks()[0];
-          if (audioTrack) newStream.addTrack(audioTrack);
-          localVideoRef.current.srcObject = newStream;
-          localStreamRef.current = newStream;
-        }
-        
-        videoTrack.onended = () => toggleScreenShare();
+        screenVideoTrackRef.current = videoTrack;
+        screenSharingRef.current = true;
         setScreenSharing(true);
+        videoTrack.onended = () => {
+          if (screenSharingRef.current) {
+            restoreCameraVideo();
+          }
+        };
       } catch (err) {
         console.log("Screen share cancelled");
       }
     } else {
-      const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-      const videoTrack = cameraStream.getVideoTracks()[0];
-      
-      // Replace video track in all peer connections
-      Object.values(peerConnections).forEach(pc => {
-        const sender = pc.getSenders().find(s => s.track?.kind === 'video');
-        if (sender) {
-          sender.replaceTrack(videoTrack);
-        }
-      });
-      
-      // Update local video
-      if (localVideoRef.current && localStreamRef.current) {
-        const newStream = new MediaStream();
-        newStream.addTrack(videoTrack);
-        const audioTrack = localStreamRef.current.getAudioTracks()[0];
-        if (audioTrack) newStream.addTrack(audioTrack);
-        localVideoRef.current.srcObject = newStream;
-        localStreamRef.current = newStream;
-      }
-      
-      setScreenSharing(false);
+      const screenTrack = screenVideoTrackRef.current;
+      screenSharingRef.current = false;
+      screenVideoTrackRef.current = null;
+      screenTrack?.stop();
+      await restoreCameraVideo();
     }
   };
 
@@ -537,9 +591,14 @@ export default function VideoMeetComponent() {
           <div key={user.socketId} className={style.videoWrapper}>
             <video
               ref={ref => {
-                if (ref && user.stream && ref.srcObject !== user.stream) {
-                  ref.srcObject = user.stream;
-                  ref.play().catch(e => console.log("Play error:", e));
+                if (ref && user.stream) {
+                  if (ref.srcObject !== user.stream) {
+                    ref.srcObject = user.stream;
+                  }
+                  ref.onloadedmetadata = () => playVideo(ref);
+                  if (ref.readyState >= 2) {
+                    playVideo(ref);
+                  }
                 }
               }}
               className={maximizedVideo === user.socketId ? style.maximizedVideo : ''}
