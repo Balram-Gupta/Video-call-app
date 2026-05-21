@@ -14,7 +14,7 @@ const getMailErrorMessage = (error) => {
 
 export const sendEmail = async (email, otp) => {
   const emailUser = process.env.EMAIL?.trim();
-  const emailPass = process.env.EMAIL_PASS?.trim();
+  const emailPass = process.env.EMAIL_PASS?.replace(/\s/g, "");
 
   if (!emailUser || !emailPass) {
     throw new Error("Email credentials are missing. Set EMAIL and EMAIL_PASS in backend/.env or your hosting environment.");

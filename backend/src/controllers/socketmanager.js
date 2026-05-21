@@ -6,6 +6,16 @@ let messages = {}
 let timeOnline = {}
 let userNames = {}
 
+const normalizeOrigin = (origin) => origin?.replace(/\/$/, "")
+const allowedOrigins = [
+    "https://video-call-app-frontend-l30w.onrender.com",
+    "http://localhost:5173",
+    "http://localhost:3000",
+    process.env.FRONTEND_URL,
+]
+    .map(normalizeOrigin)
+    .filter(Boolean)
+
 const getRoomKey = (path) => {
     if (!path) return ""
 
@@ -20,7 +30,14 @@ const getRoomKey = (path) => {
 export const connectToSocket = (server) => {
     const io = new Server(server, {
         cors: {
-            origin: process.env.FRONTEND_URL || "*",
+            origin: (origin, callback) => {
+                if (!origin || allowedOrigins.includes(normalizeOrigin(origin))) {
+                    callback(null, true)
+                    return
+                }
+
+                callback(new Error(`Socket CORS blocked origin: ${origin}`))
+            },
             methods: ["GET", "POST"],
             allowedHeaders: ["*"],
             credentials: true

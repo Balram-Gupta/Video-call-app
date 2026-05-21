@@ -1,5 +1,11 @@
 import dotenv from "dotenv";
-dotenv.config();
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 import express from "express";
 import { createServer } from "http";
@@ -14,8 +20,34 @@ connectToSocket(server);
 
 const port = process.env.PORT || 8000;
 
+const requiredEnvVars = ["MONGO_URL", "EMAIL", "EMAIL_PASS", "JWT_SECRET"];
+const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key]?.trim());
+
+if (missingEnvVars.length > 0) {
+  console.warn(
+    `Missing required environment variables: ${missingEnvVars.join(", ")}`
+  );
+}
+
+const normalizeOrigin = (origin) => origin?.replace(/\/$/, "");
+const allowedOrigins = [
+  "https://video-call-app-frontend-l30w.onrender.com",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  process.env.FRONTEND_URL,
+]
+  .map(normalizeOrigin)
+  .filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || true,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(normalizeOrigin(origin))) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`CORS blocked origin: ${origin}`));
+  },
   credentials: true
 }));
 
