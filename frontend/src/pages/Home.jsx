@@ -87,7 +87,6 @@ function HomeComponent() {
                             sx: { width: 250, mt: 1 }
                         }}
                     >
-                        {/* User Info Section */}
                         <Box sx={{ px: 2, py: 1.5, bgcolor: '#f5f5f5' }}>
                             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
                                 <PersonIcon fontSize="small" sx={{ color: '#FF9839' }} />
@@ -102,7 +101,6 @@ function HomeComponent() {
                         </Box>
                         <Divider />
                         
-                        {/* History - Only for registered users */}
                         {!user?.isGuest && (
                             <MenuItem onClick={() => { 
                                 handleMenuClose(); 
@@ -149,7 +147,7 @@ function HomeComponent() {
                             <TextField 
                                 onChange={e => setMeetingCode(e.target.value)} 
                                 id="outlined-basic" 
-                                label="Meeting code or username" 
+                                label="Meeting code" 
                                 variant="outlined"
                                 value={meetingCode}
                             />

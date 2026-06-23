@@ -91,7 +91,7 @@ export default function LandingPage() {
                                 </IconButton>
                                 <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
                                     <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#333' }}>
-                                        {getDisplayName()} {/* ✅ Fixed */}
+                                        {getDisplayName()} {}
                                     </Typography>
                                     {user?.email && user.email !== "users" && (
                                         <Typography variant="caption" sx={{ color: '#666', fontSize: '0.7rem' }}>
@@ -114,7 +114,6 @@ export default function LandingPage() {
                                     sx: { width: 250, mt: 1 }
                                 }}
                             >
-                                {/* User Info Section - Fixed */}
                                 <Box sx={{ px: 2, py: 1.5, bgcolor: '#f5f5f5' }}>
                                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <PersonIcon fontSize="small" sx={{ color: '#FF9839' }} />
@@ -129,7 +128,6 @@ export default function LandingPage() {
                                 </Box>
                                 <Divider />
                                 
-                                {/* History - Only for registered users */}
                                 {!user?.isGuest && (
                                     <MenuItem onClick={() => { 
                                         handleMenuClose(); 

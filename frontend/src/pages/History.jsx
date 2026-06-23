@@ -55,7 +55,7 @@ export default function HistoryComponent() {
             } else if (data && data.history && Array.isArray(data.history)) {
                 historyArray = data.history;
             } else if (data && data.data && Array.isArray(data.data)) {
-                historyArray = data.data;
+                historyArray = data.dta;
             } else if (data && typeof data === 'object') {
                 if (data.meetings && Array.isArray(data.meetings)) {
                     historyArray = data.meetings;
