@@ -13,6 +13,7 @@ import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import style from "../style/videoComponent.module.css";
 import server from '../environment';
+import { useParams } from 'react-router-dom';
 
 const server_url = server;
 let peerConnections = {};
@@ -26,6 +27,7 @@ const configuration = {
 };
 
 export default function VideoMeetComponent() {
+  const { url: meetingCode } = useParams();
   const socketRef = useRef();
   const socketIdRef = useRef();
   const localVideoRef = useRef();
@@ -57,12 +59,10 @@ export default function VideoMeetComponent() {
     screenSharingRef.current = screenSharing;
   }, [screenSharing]);
 
-  // Get room ID from URL
+  // Get room ID from the client-side route so it also works with HashRouter.
   useEffect(() => {
-    const path = window.location.pathname;
-    const meetingCode = decodeURIComponent(path.replace(/^\/+/, ""));
     setRoomId(meetingCode || "default-room");
-  }, []);
+  }, [meetingCode]);
 
   // Auto scroll chat
   useEffect(() => {

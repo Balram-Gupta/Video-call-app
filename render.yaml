@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: video-call-app-frontend
+    name: video-call-app-frontend-l30w
     runtime: static
     rootDir: frontend
     buildCommand: npm ci && npm run build

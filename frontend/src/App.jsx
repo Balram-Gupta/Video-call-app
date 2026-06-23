@@ -1,6 +1,6 @@
 import Authentication from './pages/Authentication.jsx';
 import './App.css';
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { HashRouter as Router, Route, Routes } from 'react-router-dom';
 import LandingPage from './pages/Landing.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import VideoMeetComponent from './pages/VideoMeet.jsx';
